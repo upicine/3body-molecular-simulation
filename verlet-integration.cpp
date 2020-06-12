@@ -30,31 +30,16 @@ static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle
     double h = std::abs(x) < MIN_ABS ?
                EPS * MIN_ABS :
                EPS * x;
-    volatile double dx = (x + h) - (x - h);
     i1D.coor = x + h;
     double fxph = calcPotential1D(i1D, i, j, k);
     i1D.coor = x - h;
     double fxmh = calcPotential1D(i1D, i, j, k);
     i1D.coor = x;
 
-    i1D.f += twice ? 2.0 * ((fxph - fxmh) / dx) : (fxph - fxmh) / dx;
-
-    if (i.id == 0) {
-        if (twice) {
-            std::cout << i.id << " " << j.id << " " << k.id << " " << ((fxph - fxmh) / dx) << std::endl;
-            std::cout << i.id << " " << k.id << " " << j.id << " " << ((fxph - fxmh) / dx) << std::endl;
-        } else {
-            std::cout << i.id << " " << j.id << " " << k.id << " " << ((fxph - fxmh) / dx) << std::endl;
-        }
-    }
+    i1D.f += twice ? 2.0 * (fxph - fxmh) : (fxph - fxmh);
 }
 
 static void calcDerivative(Particle &i, Particle &j, Particle &k, bool twice=false) {
-//    std::cout << i.id << " " << j.id << " " << k.id << std::endl;
-//    if (twice) {
-//        std::cout << i.id << " " << k.id << " " << j.id << std::endl;
-//    }
-
     calcDerivative1D(i.x, i, j, k, twice);
     calcDerivative1D(i.y, i, j, k, twice);
     calcDerivative1D(i.z, i, j, k, twice);
@@ -96,10 +81,23 @@ void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
     }
 }
 
+
+void sumForce1D(Particle1D &i, Particle1D &j, Particle1D &k) {
+    double x = i.coor;
+    double h = std::abs(x) < MIN_ABS ?
+               EPS * MIN_ABS :
+               EPS * x;
+    volatile double dx = (x + h) - (x - h);
+    i.f += j.f + k.f;
+    i.f /= dx;
+}
+
+
 void sumForces(ParticleBuff* b) {
     for (int i = 0; i < b->buf_sz; i++) {
-        b[0].buf[i].x.f += b[1].buf[i].x.f + b[2].buf[i].x.f;
-        b[0].buf[i].y.f += b[1].buf[i].y.f + b[2].buf[i].y.f;
-        b[0].buf[i].z.f += b[1].buf[i].z.f + b[2].buf[i].z.f;
+        sumForce1D(b[0].buf[i].x, b[1].buf[i].x, b[2].buf[i].x);
+        sumForce1D(b[0].buf[i].y, b[1].buf[i].y, b[2].buf[i].y);
+        sumForce1D(b[0].buf[i].z, b[1].buf[i].z, b[2].buf[i].z);
     }
 }
+

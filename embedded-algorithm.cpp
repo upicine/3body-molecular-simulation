@@ -73,13 +73,5 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
 
     sendAndRecvResults(b, 3, rank);
     sumForces(b);
-    if (rank == 0) {
-        for (int j = 0; j < b[0].buf_sz; j++) {
-            std::cout << b[0].buf[j].x.f << " "
-                      << b[0].buf[j].y.f << " "
-                      << b[0].buf[j].z.f << std::endl;
-        }
-    }
-
-//    std::copy(b[0].buf, b[0].buf + b[0].buf_sz, particles);
+    std::copy(b[0].buf, b[0].buf + b[0].buf_sz, particles);
 }

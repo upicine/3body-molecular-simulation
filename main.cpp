@@ -26,17 +26,17 @@ int main(int argc, char *argv[]) {
 
     MPI_Bcast(&particles_sz, 1, MPI_INT, 0, MPI_COMM_WORLD);
     scatterParticles(&particles, &my_particles, particles_sz, num_processes, rank);
-
+    my_particles_sz = bufferSize(rank, num_processes, particles_sz);
     embeddedAlgorithm(my_particles, rank, num_processes, particles_sz);
 
-//    if (rank == 0) {
-//        my_particles_sz = bufferSize(rank, num_processes, particles_sz);
-//        for (int i = 0; i < my_particles_sz; i++) {
-//            std::cout << my_particles[i].x.coor << " "
-//                      << my_particles[i].y.coor << " "
-//                      << my_particles[i].z.coor << std::endl;
-//        }
-//    }
+    if (rank == 0) {
+        for (int i = 0; i < my_particles_sz; i++) {
+            std::cout << my_particles[i].x.f << " "
+                      << my_particles[i].y.f << " "
+                      << my_particles[i].z.f << " " << std::endl;
+        }
+        printParticles(my_particles, my_particles_sz);
+    }
 
     MPI_Finalize();
 
