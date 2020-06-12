@@ -3,6 +3,9 @@
 
 #include "utils.h"
 
-size_t parseParticles(const char* filename, Particle **particles);
+int parseParticles(const char* filename, Particle **particles);
+
+void scatterParticles(Particle **particles, Particle **my_particles, int n,
+                      int p, int rank);
 
 #endif //MPI_HPC_PARTICLE_PARSER_H

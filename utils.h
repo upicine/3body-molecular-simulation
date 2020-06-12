@@ -5,7 +5,10 @@
 #include <iostream>
 #include <iterator>
 
-const int PARTICLE_SIZE = 12;
+const int PARTICLE_SIZE = 13;
+const double EPS = 4.69041575982343e-08;
+const double MIN_ABS = 1e-10;
+const double M = 1.0;
 
 struct Particle1D {
     double coor;
@@ -14,13 +17,12 @@ struct Particle1D {
     double a = 0;
 };
 
-
 struct Particle {
+    double id;
     Particle1D x;
     Particle1D y;
     Particle1D z;
 };
-
 
 int inline startIndex(int rank, int p, int n) {
     return rank * (n / p) + std::min(rank, n % p);

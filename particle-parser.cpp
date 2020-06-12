@@ -9,6 +9,7 @@
 int parseParticles(const char* filename, Particle **particles) {
     std::vector<Particle> particles_vec;
     std::ifstream particles_file(filename);
+    double id_counter = 0.0;
 
     for (std::string line; std::getline(particles_file, line); ) {
         Particle p;
@@ -16,6 +17,8 @@ int parseParticles(const char* filename, Particle **particles) {
 
         ss >> p.x.coor >> p.y.coor >> p.z.coor;
         ss >> p.x.v >> p.y.v >> p.z.v;
+        p.id = id_counter;
+        id_counter += 1.0;
 
         particles_vec.push_back(p);
     }

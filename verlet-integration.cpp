@@ -1,5 +1,105 @@
-//
-// Created by michal on 11.06.20.
-//
+#include <cmath>
+#include <mpi.h>
+#include <cassert>
 
 #include "verlet-integration.h"
+#include "utils.h"
+#include "embedded-algorithm.h"
+
+static double calcDistance(Particle &i, Particle &j) {
+    return std::sqrt(pow(i.x.coor - j.x.coor, 2.0)
+                     + pow(i.y.coor - j.y.coor, 2.0)
+                     + pow(i.z.coor - j.z.coor, 2.0));
+}
+
+static double calcPotential1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k) {
+    double rij = calcDistance(i, j);
+    double rik = calcDistance(i, k);
+    double rkj = calcDistance(k, j);
+
+    return (1 / pow(rij * rik * rkj, 3.0))
+            + ((3
+                * (-pow(rij, 2.0) + pow(rik, 2.0) + pow(rkj, 2.0))
+                * (pow(rij, 2.0) - pow(rik, 2.0) + pow(rkj, 2.0))
+                * (pow(rij, 2.0) + pow(rik, 2.0) - pow(rkj, 2.0)))
+               / (8 * pow(rij * rik * rkj, 5.0)));
+}
+
+static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k, bool twice) {
+    double x = i1D.coor;
+    double h = std::abs(x) < MIN_ABS ?
+               EPS * MIN_ABS :
+               EPS * x;
+    volatile double dx = (x + h) - (x - h);
+    i1D.coor = x + h;
+    double fxph = calcPotential1D(i1D, i, j, k);
+    i1D.coor = x - h;
+    double fxmh = calcPotential1D(i1D, i, j, k);
+    i1D.coor = x;
+
+    i1D.f += twice ? 2.0 * ((fxph - fxmh) / dx) : (fxph - fxmh) / dx;
+
+    if (i.id == 0) {
+        if (twice) {
+            std::cout << i.id << " " << j.id << " " << k.id << " " << ((fxph - fxmh) / dx) << std::endl;
+            std::cout << i.id << " " << k.id << " " << j.id << " " << ((fxph - fxmh) / dx) << std::endl;
+        } else {
+            std::cout << i.id << " " << j.id << " " << k.id << " " << ((fxph - fxmh) / dx) << std::endl;
+        }
+    }
+}
+
+static void calcDerivative(Particle &i, Particle &j, Particle &k, bool twice=false) {
+//    std::cout << i.id << " " << j.id << " " << k.id << std::endl;
+//    if (twice) {
+//        std::cout << i.id << " " << k.id << " " << j.id << std::endl;
+//    }
+
+    calcDerivative1D(i.x, i, j, k, twice);
+    calcDerivative1D(i.y, i, j, k, twice);
+    calcDerivative1D(i.z, i, j, k, twice);
+}
+
+void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
+    assert(b1.buf[0].id==startIndex(b1.owner, b1.p, b1.n));
+    assert(b2.buf[0].id==startIndex(b2.owner, b2.p, b2.n));
+    assert(b3.buf[0].id==startIndex(b3.owner, b3.p, b3.n));
+
+    for (int i = 0; i < b1.buf_sz; i++) {
+        for (int j = 0; j < b2.buf_sz; j++) {
+            for (int k = 0; k < b3.buf_sz; k++) {
+                if (b1.owner == b2.owner && b2.owner == b3.owner) {
+                    if (i != j && j != k && i != k)
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
+                } else if (b1.owner == b2.owner) {
+                    if (i != j) {
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                        calcDerivative(b3.buf[k], b1.buf[i], b2.buf[j]);
+                    }
+                } else if (b2.owner == b3.owner) {
+                    if (j != k) {
+                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
+                    }
+                } else if (b1.owner == b3.owner) {
+                    if (i != k) {
+                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k]);
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                    }
+                } else {
+                    calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
+                    calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                    calcDerivative(b3.buf[k], b2.buf[j], b1.buf[i], true);
+                }
+            }
+        }
+    }
+}
+
+void sumForces(ParticleBuff* b) {
+    for (int i = 0; i < b->buf_sz; i++) {
+        b[0].buf[i].x.f += b[1].buf[i].x.f + b[2].buf[i].x.f;
+        b[0].buf[i].y.f += b[1].buf[i].y.f + b[2].buf[i].y.f;
+        b[0].buf[i].z.f += b[1].buf[i].z.f + b[2].buf[i].z.f;
+    }
+}
