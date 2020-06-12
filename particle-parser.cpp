@@ -6,7 +6,7 @@
 
 #include "particle-parser.h"
 
-int parseParticles(const char* filename, Particle **particles) {
+static int parseParticles(const char* filename, Particle **particles) {
     std::vector<Particle> particles_vec;
     std::ifstream particles_file(filename);
     double id_counter = 0.0;
@@ -65,3 +65,4 @@ void scatterParticles(Particle **particles, Particle **my_particles, int n,
     *my_particles = (Particle*)(recv_buff);
 }
 
+void gatherParticles

@@ -5,11 +5,13 @@
 #include "utils.h"
 #include "particle-parser.h"
 #include "embedded-algorithm.h"
+#include "verlet-integration.h"
 
 int main(int argc, char *argv[]) {
     int num_processes, rank;
+    double dt = 0.5;
 
-    const char* filename = "/home/michal/CLionProjects/mpi-hpc/test_10.txt";
+    const char* filename = "/home/michal/CLionProjects/mpi-hpc/test.in";
 
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -27,14 +29,15 @@ int main(int argc, char *argv[]) {
     MPI_Bcast(&particles_sz, 1, MPI_INT, 0, MPI_COMM_WORLD);
     scatterParticles(&particles, &my_particles, particles_sz, num_processes, rank);
     my_particles_sz = bufferSize(rank, num_processes, particles_sz);
+
     embeddedAlgorithm(my_particles, rank, num_processes, particles_sz);
+    calcStartingAcc(my_particles, my_particles_sz);
+
+    calcNewCoor(my_particles, my_particles_sz, dt);
+    embeddedAlgorithm(my_particles, rank, num_processes, particles_sz);
+    calcNewAccAndV(my_particles, my_particles_sz, dt);
 
     if (rank == 0) {
-        for (int i = 0; i < my_particles_sz; i++) {
-            std::cout << my_particles[i].x.f << " "
-                      << my_particles[i].y.f << " "
-                      << my_particles[i].z.f << " " << std::endl;
-        }
         printParticles(my_particles, my_particles_sz);
     }
 

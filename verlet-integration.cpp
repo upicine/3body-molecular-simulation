@@ -82,7 +82,7 @@ void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
 }
 
 
-void sumForce1D(Particle1D &i, Particle1D &j, Particle1D &k) {
+static void sumForce1D(Particle1D &i, Particle1D &j, Particle1D &k) {
     double x = i.coor;
     double h = std::abs(x) < MIN_ABS ?
                EPS * MIN_ABS :
@@ -101,3 +101,48 @@ void sumForces(ParticleBuff* b) {
     }
 }
 
+
+void calcStartingAcc1D(Particle1D &p) {
+    p.a = -(p.f / M);
+    p.f = 0;
+}
+
+
+void calcStartingAcc(Particle *particles, int particles_sz) {
+    for (int i = 0; i < particles_sz; i++) {
+        calcStartingAcc1D(particles[i].x);
+        calcStartingAcc1D(particles[i].y);
+        calcStartingAcc1D(particles[i].z);
+    }
+}
+
+
+void calcNewCoor1D(Particle1D &p, double dt) {
+    p.coor = p.coor + p.v * dt + p.a * dt * dt / 2;
+}
+
+
+void calcNewCoor(Particle *particles, int particles_sz, double dt) {
+    for (int i = 0; i < particles_sz; i++) {
+        calcNewCoor1D(particles[i].x, dt);
+        calcNewCoor1D(particles[i].y, dt);
+        calcNewCoor1D(particles[i].z, dt);
+    }
+}
+
+
+void calcNewAccAndV1D(Particle1D &p, double dt) {
+    double da = -p.f / M;
+    p.v = p.v + (p.a + da) * dt / 2;
+    p.a = da;
+    p.f = 0;
+}
+
+
+void calcNewAccAndV(Particle *particles, int particles_sz, double dt) {
+    for (int i = 0; i < particles_sz; i++) {
+        calcNewAccAndV1D(particles[i].x, dt);
+        calcNewAccAndV1D(particles[i].y, dt);
+        calcNewAccAndV1D(particles[i].z, dt);
+    }
+}
