@@ -5,11 +5,14 @@
 
 int parseParticles(const char* filename, Particle **particles);
 
-void scatterParticles(Particle **particles, Particle **my_particles, int n,
-                      int p, int rank);
+Particle* scatterParticles(Particle **particles, int n, int p, int rank,
+                           int* send_counts, int* displacement);
 
-void generateBuffSizes(int *send_counts, int p, int n);
+int* generateBuffSizes(int p, int n);
 
-void generateDisplacement(int *displacement, int *send_counts, int p);
+int* generateDisplacement(int *send_counts, int p);
+
+void gatherParticles(Particle *particles, Particle *my_particles,
+                     int rank, int* recv_counts, int* displacement);
 
 #endif //MPI_HPC_PARTICLE_PARSER_H

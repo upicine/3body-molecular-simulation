@@ -3,10 +3,6 @@
 #include "embedded-algorithm.h"
 #include "verlet-integration.h"
 
-static void compute(int rank, int a, int b, int c) {
-    std::cout << "RANK " << rank << " | " << a << " " << b << " " << c << std::endl;
-}
-
 void shiftRight(ParticleBuff &pb, int tag) {
     MPI_Send(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, pb.getNext(), tag, MPI_COMM_WORLD);
     MPI_Recv(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, pb.getPrev(), tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);

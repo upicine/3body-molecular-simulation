@@ -6,8 +6,8 @@ CC          := mpic++
 # Available flags:
 # -DUSE_RANDOM_GRAPH=1   --- generates a random graph
 # -DUSE_RANDOM_SEED=123  --- uses a given seed to generate a random graph
-CFLAGS      := -O3 -c
-LFLAGS      := -O3
+CFLAGS      := -O3 -Wall -c
+LFLAGS      := -O3 -Wall
 ALL         := \
 	main.exe
 

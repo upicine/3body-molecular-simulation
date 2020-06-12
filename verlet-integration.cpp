@@ -6,10 +6,11 @@
 #include "utils.h"
 #include "embedded-algorithm.h"
 
+
 static double calcDistance(Particle &i, Particle &j) {
-    return std::sqrt(pow(i.x.coor - j.x.coor, 2.0)
-                     + pow(i.y.coor - j.y.coor, 2.0)
-                     + pow(i.z.coor - j.z.coor, 2.0));
+    return std::sqrt(std::pow(i.x.coor - j.x.coor, 2)
+                     + std::pow(i.y.coor - j.y.coor, 2)
+                     + std::pow(i.z.coor - j.z.coor, 2));
 }
 
 static double calcPotential1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k) {
@@ -17,12 +18,12 @@ static double calcPotential1D(Particle1D &i1D, Particle &i, Particle &j, Particl
     double rik = calcDistance(i, k);
     double rkj = calcDistance(k, j);
 
-    return (1 / pow(rij * rik * rkj, 3.0))
+    return (1 / std::pow(rij * rik * rkj, 3))
             + ((3
-                * (-pow(rij, 2.0) + pow(rik, 2.0) + pow(rkj, 2.0))
-                * (pow(rij, 2.0) - pow(rik, 2.0) + pow(rkj, 2.0))
-                * (pow(rij, 2.0) + pow(rik, 2.0) - pow(rkj, 2.0)))
-               / (8 * pow(rij * rik * rkj, 5.0)));
+                * (-std::pow(rij, 2) + std::pow(rik, 2) + std::pow(rkj, 2))
+                * (std::pow(rij, 2) - std::pow(rik, 2) + std::pow(rkj, 2))
+                * (std::pow(rij, 2) + std::pow(rik, 2) - std::pow(rkj, 2)))
+               / (8 * std::pow(rij * rik * rkj, 5)));
 }
 
 static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k, bool twice) {
