@@ -5,12 +5,14 @@
 #include "verlet-integration.h"
 #include "utils.h"
 #include "embedded-algorithm.h"
+#include "particle-buffer.h"
 
 
 static double calcDistance(Particle &i, Particle &j) {
-    return std::sqrt(std::pow(i.x.coor - j.x.coor, 2)
-                     + std::pow(i.y.coor - j.y.coor, 2)
-                     + std::pow(i.z.coor - j.z.coor, 2));
+    double dist = std::sqrt(std::pow(i.x.coor - j.x.coor, 2)
+                            + std::pow(i.y.coor - j.y.coor, 2)
+                            + std::pow(i.z.coor - j.z.coor, 2));
+    return std::max(dist, MIN_ABS);
 }
 
 static double calcPotential1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k) {
