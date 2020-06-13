@@ -28,7 +28,7 @@ static double calcPotential1D(Particle1D &i1D, Particle &i, Particle &j, Particl
                / (8 * std::pow(rij * rik * rkj, 5)));
 }
 
-static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k, bool twice) {
+static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k) {
     double x = i1D.coor;
     double h = std::abs(x) < MIN_ABS ?
                EPS * MIN_ABS :
@@ -39,13 +39,13 @@ static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle
     double fxmh = calcPotential1D(i1D, i, j, k);
     i1D.coor = x;
 
-    i1D.f += twice ? 2.0 * (fxph - fxmh) : (fxph - fxmh);
+    i1D.f += 2.0 * (fxph - fxmh);
 }
 
-static void calcDerivative(Particle &i, Particle &j, Particle &k, bool twice=false) {
-    calcDerivative1D(i.x, i, j, k, twice);
-    calcDerivative1D(i.y, i, j, k, twice);
-    calcDerivative1D(i.z, i, j, k, twice);
+static void calcDerivative(Particle &i, Particle &j, Particle &k) {
+    calcDerivative1D(i.x, i, j, k);
+    calcDerivative1D(i.y, i, j, k);
+    calcDerivative1D(i.z, i, j, k);
 }
 
 void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
@@ -58,32 +58,32 @@ void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
             for (int k = 0; k < b3.buf_sz; k++) {
                 if (b1.owner == b2.owner && b2.owner == b3.owner) {
                     if (i != j && j < k && i != k)
-                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
                 } else if (b1.owner == b2.owner) {
                     if (i != j) {
-                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
                     }
                     if (i < j) {
-                        calcDerivative(b3.buf[k], b1.buf[i], b2.buf[j], true);
+                        calcDerivative(b3.buf[k], b1.buf[i], b2.buf[j]);
                     }
                 } else if (b2.owner == b3.owner) {
                     if (j != k) {
-                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
+                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k]);
                     }
                     if (j < k) {
-                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
                     }
                 } else if (b1.owner == b3.owner) {
                     if (i != k) {
-                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
                     }
                     if (i < k) {
-                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
+                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k]);
                     }
                 } else {
-                    calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
-                    calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
-                    calcDerivative(b3.buf[k], b2.buf[j], b1.buf[i], true);
+                    calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k]);
+                    calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
+                    calcDerivative(b3.buf[k], b2.buf[j], b1.buf[i]);
                 }
             }
         }
