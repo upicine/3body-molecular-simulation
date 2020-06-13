@@ -5,6 +5,9 @@
 #include "particle-buffer.h"
 
 void shiftRight(ParticleBuff &pb, int tag) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
     MPI_Request request[2];
     MPI_Status status[2];
 
@@ -12,6 +15,10 @@ void shiftRight(ParticleBuff &pb, int tag) {
     pb.setPrev();
     MPI_Irecv(pb.d_recv_buf, pb.d_buf_sz, MPI_DOUBLE, pb.owner, tag, MPI_COMM_WORLD, &request[1]);
     MPI_Waitall(2, request, status);
+
+    if (rank == 0) {
+        std::cout << "start done" << std::endl;
+    }
 
     pb.switchRecvBuf();
 }
@@ -27,6 +34,10 @@ void sendAndRecvResults(ParticleBuff *b, int tag, int rank) {
     }
     MPI_Waitall(6, request, status);
 
+    if (rank == 0) {
+        std::cout << "recv result done" << std::endl;
+    }
+
     for (int i = 0; i < 3; i++) {
         b[i].switchRecvBuf();
     }
@@ -41,6 +52,10 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
 
     int i = 0;
 
+    if (rank == 0) {
+        std::cout << "start embedded" << std::endl;
+    }
+
     MPI_Request request[2];
     MPI_Status status[2];
 
@@ -50,6 +65,10 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
     MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getNext(), 0, MPI_COMM_WORLD, &request[0]);
     MPI_Irecv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, 0, MPI_COMM_WORLD, &request[1]);
     MPI_Waitall(2, request, status);
+
+    if (rank == 0) {
+        std::cout << "start done" << std::endl;
+    }
 
     for (int s = p - 3; s >= 0; s -= 3) {
         for (int j = 0; j < s; j++) {
