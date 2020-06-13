@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     double dt = 1;
     int steps = 5;
 
-    const char* filename = "/home/michal/CLionProjects/mpi-hpc/test_10.txt";
+    const char* filename = "./test2.in";
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);

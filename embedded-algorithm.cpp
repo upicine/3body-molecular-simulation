@@ -4,25 +4,6 @@
 #include "verlet-integration.h"
 #include "particle-buffer.h"
 
-//void shiftRight(ParticleBuff &pb, int tag) {
-//    MPI_Send(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, pb.getNext(), tag, MPI_COMM_WORLD);
-//    pb.setPrev();
-//    MPI_Recv(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, pb.owner, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//}
-
-//void sendAndRecvResults(ParticleBuff *b, int tag, int rank) {
-//    MPI_Send(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, tag, MPI_COMM_WORLD);
-//    MPI_Send(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].owner, tag, MPI_COMM_WORLD);
-//    MPI_Send(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, tag, MPI_COMM_WORLD);
-//    b[0].setOwner(rank);
-//    b[1].setOwner(rank);
-//    b[2].setOwner(rank);
-//    MPI_Recv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//    MPI_Recv(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//    MPI_Recv(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//
-//}
-
 void shiftRight(ParticleBuff &pb, int tag) {
     MPI_Request request[2];
     MPI_Status status[2];
@@ -39,41 +20,17 @@ void sendAndRecvResults(ParticleBuff *b, int tag, int rank) {
     MPI_Request request[6];
     MPI_Status status[6];
 
-    MPI_Isend(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, tag, MPI_COMM_WORLD, &request[0]);
-    b[0].setOwner(rank);
-    MPI_Irecv(b[0].d_recv_buf, b[0].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &request[1]);
-
-    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].owner, tag, MPI_COMM_WORLD, &request[2]);
-    b[1].setOwner(rank);
-    MPI_Irecv(b[1].d_recv_buf, b[1].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &request[3]);
-
-    MPI_Isend(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, tag, MPI_COMM_WORLD, &request[4]);
-    b[2].setOwner(rank);
-    MPI_Irecv(b[2].d_recv_buf, b[2].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &request[5]);
-
+    for (int i = 0, j = 0; i < 3; i++, j+= 2) {
+        MPI_Isend(b[i].d_buf, b[i].d_buf_sz, MPI_DOUBLE, b[i].owner, tag, MPI_COMM_WORLD, &request[j]);
+        b[i].setOwner(rank);
+        MPI_Irecv(b[i].d_recv_buf, b[i].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &request[j + 1]);
+    }
     MPI_Waitall(6, request, status);
 
-    b[0].switchRecvBuf();
-    b[1].switchRecvBuf();
-    b[2].switchRecvBuf();
+    for (int i = 0; i < 3; i++) {
+        b[i].switchRecvBuf();
+    }
 }
-
-//
-//void sendAndRecvResults(ParticleBuff *b, int tag, int rank) {
-//    MPI_Request request[2];
-//    MPI_Status status[2];
-//
-//    for (int i = 0, j = 0; i < 3; i++, j+= 2) {
-//        MPI_Isend(b[i].d_buf, b[i].d_buf_sz, MPI_DOUBLE, b[i].owner, tag, MPI_COMM_WORLD, &request[0]);
-//        b[i].setOwner(rank);
-//        MPI_Irecv(b[i].d_recv_buf, b[i].d_buf_sz, MPI_DOUBLE, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &request[j + 1]);
-//        MPI_Waitall(2, request, status);
-//    }
-//
-//    for (int i = 0; i < 3; i++) {
-//        b[i].switchRecvBuf();
-//    }
-//}
 
 void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
     ParticleBuff b[] = {
@@ -84,10 +41,6 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
 
     int i = 0;
 
-//    MPI_Send(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getPrev(), 0, MPI_COMM_WORLD);
-//    MPI_Send(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getNext(), 0, MPI_COMM_WORLD);
-//    MPI_Recv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//    MPI_Recv(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     MPI_Request request[2];
     MPI_Status status[2];
 
