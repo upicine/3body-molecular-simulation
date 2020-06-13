@@ -57,22 +57,28 @@ void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
         for (int j = 0; j < b2.buf_sz; j++) {
             for (int k = 0; k < b3.buf_sz; k++) {
                 if (b1.owner == b2.owner && b2.owner == b3.owner) {
-                    if (i != j && j != k && i != k)
-                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
+                    if (i != j && j < k && i != k)
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
                 } else if (b1.owner == b2.owner) {
                     if (i != j) {
                         calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
-                        calcDerivative(b3.buf[k], b1.buf[i], b2.buf[j]);
+                    }
+                    if (i < j) {
+                        calcDerivative(b3.buf[k], b1.buf[i], b2.buf[j], true);
                     }
                 } else if (b2.owner == b3.owner) {
                     if (j != k) {
                         calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
-                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k]);
+                    }
+                    if (j < k) {
+                        calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
                     }
                 } else if (b1.owner == b3.owner) {
                     if (i != k) {
-                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k]);
                         calcDerivative(b1.buf[i], b2.buf[j], b3.buf[k], true);
+                    }
+                    if (i < k) {
+                        calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
                     }
                 } else {
                     calcDerivative(b2.buf[j], b1.buf[i], b3.buf[k], true);
