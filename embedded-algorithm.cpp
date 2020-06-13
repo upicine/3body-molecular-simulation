@@ -11,14 +11,15 @@ void shiftRight(ParticleBuff &pb, int tag) {
     MPI_Request request[2];
     MPI_Status status[2];
 
+    std::cout << "RANK=" << rank << " send to: " << pb.getNext() << std::endl;
     MPI_Isend(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, pb.getNext(), tag, MPI_COMM_WORLD, &request[0]);
     pb.setPrev();
+    std::cout << "RANK=" << rank << " recv from: " << pb.owner << std::endl;
     MPI_Irecv(pb.d_recv_buf, pb.d_buf_sz, MPI_DOUBLE, pb.owner, tag, MPI_COMM_WORLD, &request[1]);
     MPI_Waitall(2, request, status);
 
-    if (rank == 0) {
-        std::cout << "start done" << std::endl;
-    }
+
+    std::cout << "RANK=" << rank << " shift done" << std::endl;
 
     pb.switchRecvBuf();
 }
