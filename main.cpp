@@ -10,7 +10,7 @@
 int main(int argc, char *argv[]) {
     int num_processes, rank, steps;
     double dt;
-    bool verbose;
+    bool verbose = false;
     std::string input, output;
 
     MPI_Init(&argc, &argv);
@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     int particles_sz, my_particles_sz;
 
     if (rank == 0) {
+        std::cout << "parsing " << input << " steps=" << steps << " dt=" << dt << std::endl;
         particles_sz = parseParticles(input, &particles);
     }
 
@@ -37,15 +38,26 @@ int main(int argc, char *argv[]) {
                                     rank, send_counts, displacement);
     my_particles_sz = bufferSize(rank, num_processes, particles_sz);
 
+    if (rank == 0) {
+        std::cout << "scatter done" << std::endl;
+    }
+
     for (int i = 0; i < steps; i++) {
         if (i == 0) {
             embeddedAlgorithm(my_particles, rank, num_processes, particles_sz);
             calcStartingAcc(my_particles, my_particles_sz);
+            if (rank == 0) {
+                std::cout << "precalc step done" << std::endl;
+            }
         }
 
         calcNewCoor(my_particles, my_particles_sz, dt);
         embeddedAlgorithm(my_particles, rank, num_processes, particles_sz);
         calcNewAccAndV(my_particles, my_particles_sz, dt);
+
+        if (rank == 0) {
+            std::cout << "calc new acc done" << std::endl;
+        }
 
         if (verbose) {
             gatherParticles(particles, my_particles, rank,
@@ -57,6 +69,9 @@ int main(int argc, char *argv[]) {
     }
 
     gatherParticles(particles, my_particles, rank, send_counts, displacement);
+    if (rank == 0) {
+        std::cout << "gather done" << std::endl;
+    }
     if (rank == 0) {
         saveResults(particles, particles_sz, output, steps);
     }
