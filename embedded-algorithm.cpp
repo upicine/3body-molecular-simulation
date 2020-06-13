@@ -73,7 +73,7 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
     for (int s = p - 3; s >= 0; s -= 3) {
         for (int j = 0; j < s; j++) {
             if (j != 0 || s != p - 3) {
-                shiftRight(b[i], 1);
+                shiftRight(b[i], 1, rank, p);
             } else {
                 computeForce(b[1], b[1], b[1]);
                 computeForce(b[1], b[1], b[2]);
@@ -93,7 +93,7 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
     if (p % 3 == 0) {
         i = (i - 1) % 3;
 
-        shiftRight(b[i], 2);
+        shiftRight(b[i], 2, rank, p);
 
         if ((rank / (p / 3)) == 0) {
             computeForce(b[0], b[1], b[2]);
