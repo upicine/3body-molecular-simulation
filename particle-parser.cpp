@@ -6,7 +6,7 @@
 
 #include "particle-parser.h"
 
-int parseParticles(const char* filename, Particle **particles) {
+int parseParticles(std::string &filename, Particle **particles) {
     std::vector<Particle> particles_vec;
     std::ifstream particles_file(filename);
     double id_counter = 0.0;
@@ -25,6 +25,7 @@ int parseParticles(const char* filename, Particle **particles) {
 
     *particles = new Particle[particles_vec.size()];
     std::copy(particles_vec.begin(), particles_vec.end(), *particles);
+    particles_file.close();
 
     return static_cast<int>(particles_vec.size());
 }
@@ -50,7 +51,6 @@ int* generateDisplacement(int *send_counts, int p) {
 
 Particle* scatterParticles(Particle **particles, int n, int p, int rank,
                            int* send_counts, int* displacement) {
-
     int recv_buff_sz = bufferSize(rank, p, n) * PARTICLE_SIZE;
     double *recv_buff = new double[recv_buff_sz];
 

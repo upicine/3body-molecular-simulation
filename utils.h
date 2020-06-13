@@ -48,5 +48,11 @@ void printArray(T* arr, int size) {
     std::cout << std::endl;
 }
 
+void parseArgs(int argc, char** argv, double &dt, int &steps,
+               std::string &input, std::string &output, bool &verbose);
+
+void saveResults(Particle *particles, int particle_sz, std::string &filename,
+                 int step);
+
 
 #endif //MPI_HPC_UTILS_H
