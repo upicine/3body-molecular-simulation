@@ -29,7 +29,7 @@ void parseArgs(int argc, char** argv, double &dt, int &steps,
 void saveResults(Particle *particles, int particle_sz, std::string &filename,
                  int step) {
     std::string output_filename = filename + "_" + std::to_string(step) + ".txt";
-    std::ofstream output_file(filename);
+    std::ofstream output_file(output_filename);
     output_file << std::setprecision(16);
 
     for (int i = 0; i < particle_sz; i++) {
