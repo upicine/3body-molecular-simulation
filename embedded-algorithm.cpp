@@ -4,18 +4,17 @@
 #include "verlet-integration.h"
 #include "particle-buffer.h"
 
-void shiftRight(ParticleBuff &pb, int tag) {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
+void shiftRight(ParticleBuff &pb, int tag, int rank, int p) {
     MPI_Request request[2];
     MPI_Status status[2];
+    int next = nextRank(rank, p);
+    int prev = prevRank(rank, p);
 
-    std::cout << "RANK=" << rank << " send to: " << pb.getNext() << std::endl;
-    MPI_Isend(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, pb.getNext(), tag, MPI_COMM_WORLD, &request[0]);
+    std::cout << "RANK=" << rank << " send to: " << next << std::endl;
+    MPI_Isend(pb.d_buf, pb.d_buf_sz, MPI_DOUBLE, next, tag, MPI_COMM_WORLD, &request[0]);
     pb.setPrev();
-    std::cout << "RANK=" << rank << " recv from: " << pb.owner << std::endl;
-    MPI_Irecv(pb.d_recv_buf, pb.d_buf_sz, MPI_DOUBLE, pb.owner, tag, MPI_COMM_WORLD, &request[1]);
+    std::cout << "RANK=" << rank << " recv from: " << prev << std::endl;
+    MPI_Irecv(pb.d_recv_buf, pb.d_buf_sz, MPI_DOUBLE, prev, tag, MPI_COMM_WORLD, &request[1]);
     MPI_Waitall(2, request, status);
 
 
