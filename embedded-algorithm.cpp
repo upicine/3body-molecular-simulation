@@ -43,15 +43,14 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
 
     int i = 0;
 
-    MPI_Request request[2];
-    MPI_Status status[2];
+    MPI_Request request[4];
+    MPI_Status status[4];
 
     MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getPrev(), 0, MPI_COMM_WORLD, &request[0]);
-    MPI_Irecv(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, 0, MPI_COMM_WORLD, &request[1]);
-    MPI_Waitall(2, request, status);
-    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getNext(), 0, MPI_COMM_WORLD, &request[0]);
-    MPI_Irecv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, 0, MPI_COMM_WORLD, &request[1]);
-    MPI_Waitall(2, request, status);
+    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getNext(), 0, MPI_COMM_WORLD, &request[1]);
+    MPI_Irecv(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, 0, MPI_COMM_WORLD, &request[2]);
+    MPI_Irecv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, 0, MPI_COMM_WORLD, &request[3]);
+    MPI_Waitall(4, request, status);
 
     for (int s = p - 3; s >= 0; s -= 3) {
         for (int j = 0; j < s; j++) {
