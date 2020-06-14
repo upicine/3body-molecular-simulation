@@ -82,9 +82,8 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
         }
 
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+
     sendAndRecvResults(b, 3, rank);
     sumForces(b);
     std::copy(b[0].buf, b[0].buf + b[0].buf_sz, particles);
-    MPI_Barrier(MPI_COMM_WORLD);
 }
