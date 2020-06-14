@@ -15,7 +15,7 @@ static double calcDistance(Particle &i, Particle &j) {
     return std::max(dist, MIN_ABS);
 }
 
-static double calcPotential1D(Particle1D &i1D, Particle &i, Particle &j, Particle &k) {
+static double calcPotential(Particle &i, Particle &j, Particle &k) {
     double rij = calcDistance(i, j);
     double rik = calcDistance(i, k);
     double rkj = calcDistance(k, j);
@@ -34,9 +34,9 @@ static void calcDerivative1D(Particle1D &i1D, Particle &i, Particle &j, Particle
                EPS * MIN_ABS :
                EPS * x;
     i1D.coor = x + h;
-    double fxph = calcPotential1D(i1D, i, j, k);
+    double fxph = calcPotential(i, j, k);
     i1D.coor = x - h;
-    double fxmh = calcPotential1D(i1D, i, j, k);
+    double fxmh = calcPotential(i, j, k);
     i1D.coor = x;
 
     i1D.f += 2.0 * (fxph - fxmh);
