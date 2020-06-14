@@ -9,13 +9,18 @@
 
 int main(int argc, char *argv[]) {
     int num_processes, rank, steps;
-    double dt;
+    double dt,start_time, end_time;
+    double par_exec = 0, seq_exec = 0;
     bool verbose = false;
     std::string input, output;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
+
+    if (rank == 0 && BENCHMARK) {
+        start_time = MPI_Wtime();
+    }
 
     parseArgs(argc, argv, dt, steps, input, output, verbose);
 
@@ -36,6 +41,11 @@ int main(int argc, char *argv[]) {
     my_particles = scatterParticles(&particles, particles_sz, num_processes,
                                     rank, send_counts, displacement);
     my_particles_sz = bufferSize(rank, num_processes, particles_sz);
+
+    if (rank == 0 && BENCHMARK) {
+        seq_exec += MPI_Wtime() - start_time;
+        start_time = MPI_Wtime();
+    }
 
     for (int i = 0; i < steps; i++) {
         if (i == 0) {
@@ -58,8 +68,18 @@ int main(int argc, char *argv[]) {
 
     gatherParticles(particles, my_particles, rank, send_counts, displacement);
 
+    if (rank == 0 && BENCHMARK) {
+        par_exec += MPI_Wtime() - start_time;
+        start_time = MPI_Wtime();
+    }
+
     if (rank == 0) {
         saveResults(particles, particles_sz, output, steps);
+    }
+
+    if (rank == 0 && BENCHMARK) {
+        seq_exec += MPI_Wtime() - start_time;
+        std::cout << "seq_exec=" << seq_exec << " " << "par_exec=" << par_exec << std::endl;
     }
 
     MPI_Finalize();
