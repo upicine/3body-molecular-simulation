@@ -86,6 +86,25 @@ void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
 }
 
 
+static void computeDerivativedxSeq1D(Particle1D &p) {
+    double x = p.coor;
+    double h = std::abs(x) < MIN_ABS ?
+               EPS * MIN_ABS :
+               EPS * x;
+    volatile double dx = (x + h) - (x - h);
+    p.f /= dx;
+}
+
+
+static void computeDerivativedxSeq(Particle *particles, int particles_sz) {
+    for (int i = 0; i < particles_sz; i++) {
+        computeDerivativedxSeq1D(particles[i].x);
+        computeDerivativedxSeq1D(particles[i].y);
+        computeDerivativedxSeq1D(particles[i].z);
+    }
+}
+
+
 void computeForceSeq(Particle *particles, int particles_sz) {
     for (int i = 0; i < particles_sz; i++) {
         for (int j = 0; j < particles_sz; j++) {
@@ -96,6 +115,8 @@ void computeForceSeq(Particle *particles, int particles_sz) {
             }
         }
     }
+
+    computeDerivativedxSeq(particles, particles_sz);
 }
 
 
