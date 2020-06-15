@@ -1,6 +1,5 @@
 #include <cmath>
 #include <mpi.h>
-#include <cassert>
 
 #include "verlet-integration.h"
 #include "utils.h"
@@ -49,10 +48,6 @@ static void calcDerivative(Particle &i, Particle &j, Particle &k) {
 }
 
 void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
-    assert(b1.buf[0].id==startIndex(b1.owner, b1.p, b1.n));
-    assert(b2.buf[0].id==startIndex(b2.owner, b2.p, b2.n));
-    assert(b3.buf[0].id==startIndex(b3.owner, b3.p, b3.n));
-
     for (int i = 0; i < b1.buf_sz; i++) {
         for (int j = 0; j < b2.buf_sz; j++) {
             for (int k = 0; k < b3.buf_sz; k++) {
@@ -91,6 +86,19 @@ void computeForce(ParticleBuff &b1, ParticleBuff &b2, ParticleBuff &b3) {
 }
 
 
+void computeForceSeq(Particle *particles, int particles_sz) {
+    for (int i = 0; i < particles_sz; i++) {
+        for (int j = 0; j < particles_sz; j++) {
+            for (int k = 0; k < particles_sz; k++) {
+                if (i != j && j < k && i != k) {
+                    calcDerivative(particles[i], particles[j], particles[k]);
+                }
+            }
+        }
+    }
+}
+
+
 static void sumForce1D(Particle1D &i, Particle1D &j, Particle1D &k) {
     double x = i.coor;
     double h = std::abs(x) < MIN_ABS ?
@@ -111,7 +119,7 @@ void sumForces(ParticleBuff* b) {
 }
 
 
-void calcStartingAcc1D(Particle1D &p) {
+static void calcStartingAcc1D(Particle1D &p) {
     p.a = -(p.f / M);
     p.f = 0;
 }
@@ -126,7 +134,7 @@ void calcStartingAcc(Particle *particles, int particles_sz) {
 }
 
 
-void calcNewCoor1D(Particle1D &p, double dt) {
+static void calcNewCoor1D(Particle1D &p, double dt) {
     p.coor = p.coor + p.v * dt + p.a * dt * dt / 2;
 }
 
@@ -140,7 +148,7 @@ void calcNewCoor(Particle *particles, int particles_sz, double dt) {
 }
 
 
-void calcNewAccAndV1D(Particle1D &p, double dt) {
+static void calcNewAccAndV1D(Particle1D &p, double dt) {
     double da = -p.f / M;
     p.v = p.v + (p.a + da) * dt / 2;
     p.a = da;

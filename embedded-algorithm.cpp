@@ -4,6 +4,12 @@
 #include "verlet-integration.h"
 #include "particle-buffer.h"
 
+const int START_BUFF_TAG = 0;
+const int SHIFT_BUFF_TAG = 1;
+const int SHIFT_BUFF_TAG_2 = 2;
+const int RECV_BUFF_TAG = 3;
+
+
 void shiftRight(ParticleBuff &pb, int tag, int rank, int p) {
     MPI_Request request[2];
     MPI_Status status[2];
@@ -46,16 +52,16 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
     MPI_Request request[4];
     MPI_Status status[4];
 
-    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getPrev(), 0, MPI_COMM_WORLD, &request[0]);
-    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getNext(), 0, MPI_COMM_WORLD, &request[1]);
-    MPI_Irecv(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, 0, MPI_COMM_WORLD, &request[2]);
-    MPI_Irecv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, 0, MPI_COMM_WORLD, &request[3]);
+    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getPrev(), START_BUFF_TAG, MPI_COMM_WORLD, &request[0]);
+    MPI_Isend(b[1].d_buf, b[1].d_buf_sz, MPI_DOUBLE, b[1].getNext(), START_BUFF_TAG, MPI_COMM_WORLD, &request[1]);
+    MPI_Irecv(b[2].d_buf, b[2].d_buf_sz, MPI_DOUBLE, b[2].owner, START_BUFF_TAG, MPI_COMM_WORLD, &request[2]);
+    MPI_Irecv(b[0].d_buf, b[0].d_buf_sz, MPI_DOUBLE, b[0].owner, START_BUFF_TAG, MPI_COMM_WORLD, &request[3]);
     MPI_Waitall(4, request, status);
 
     for (int s = p - 3; s >= 0; s -= 3) {
         for (int j = 0; j < s; j++) {
             if (j != 0 || s != p - 3) {
-                shiftRight(b[i], 1, rank, p);
+                shiftRight(b[i], SHIFT_BUFF_TAG, rank, p);
             } else {
                 computeForce(b[1], b[1], b[1]);
                 computeForce(b[1], b[1], b[2]);
@@ -73,9 +79,9 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
     }
 
     if (p % 3 == 0) {
-        i = (i - 1) % 3;
+        i = i == 0 ? 2 : i - 1;
 
-        shiftRight(b[i], 2, rank, p);
+        shiftRight(b[i], SHIFT_BUFF_TAG_2, rank, p);
 
         if ((rank / (p / 3)) == 0) {
             computeForce(b[0], b[1], b[2]);
@@ -83,7 +89,7 @@ void embeddedAlgorithm(Particle *particles, int rank, int p, int n) {
 
     }
 
-    sendAndRecvResults(b, 3, rank);
+    sendAndRecvResults(b, RECV_BUFF_TAG, rank);
     sumForces(b);
     std::copy(b[0].buf, b[0].buf + b[0].buf_sz, particles);
 }

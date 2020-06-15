@@ -1,7 +1,3 @@
-//
-// Created by michal on 11.06.20.
-//
-
 #ifndef MPI_HPC_EMBEDDED_ALGORITHM_H
 #define MPI_HPC_EMBEDDED_ALGORITHM_H
 

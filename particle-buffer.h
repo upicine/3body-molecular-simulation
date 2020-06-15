@@ -1,7 +1,3 @@
-//
-// Created by michal on 12.06.20.
-//
-
 #ifndef MPI_HPC_PARTICLE_BUFFER_H
 #define MPI_HPC_PARTICLE_BUFFER_H
 
