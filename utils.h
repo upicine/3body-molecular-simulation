@@ -9,7 +9,7 @@ const int PARTICLE_SIZE = 13;
 const double EPS = 4.69041575982343e-08;
 const double MIN_ABS = 1e-10;
 const double M = 1.0;
-const bool BENCHMARK = true;
+const bool BENCHMARK = false;
 
 struct Particle1D {
     double coor;

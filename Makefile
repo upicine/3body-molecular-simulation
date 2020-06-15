@@ -1,4 +1,4 @@
-CC          := mpic++
+CC          := CC
 CFLAGS      := -O3 -Wall -c
 LFLAGS      := -O3 -Wall
 ALL         := \
